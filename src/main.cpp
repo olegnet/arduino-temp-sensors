@@ -9,6 +9,8 @@
 #include "wifi-credentials.h"
 // #define WIFI_SSID "xxx"
 // #define WIFI_PASS "xxx"
+// #define SERVER_HOST "192.168.1.100"
+// #define SERVER_PORT 12345
 
 // SCL GPIO5
 // SDA GPIO4
@@ -30,15 +32,20 @@ OneWire oneWire_second_sensor(ONE_WIRE_BUS_SECOND_SENSOR);
 DallasTemperature first_sensor(&oneWire_first_sensor);
 DallasTemperature second_sensor(&oneWire_second_sensor);
 
+const String host = SERVER_HOST;
+const int16_t port = SERVER_PORT;
+
 bool wifi_cycle_ui = true;
+auto client = WiFiClient();
 
 struct Sensor {
+    int8_t sensor_id;
     const char *device_name;
     int16_t offset_y;
 };
 
-const Sensor first = {"first", 2};
-const Sensor second = {"second", 24};
+const Sensor first = {1, "first", 2};
+const Sensor second = {2, "second", 24};
 
 void display_dot(int16_t offset_x) {
     display.drawPixel(offset_x, SSD1306_LCDHEIGHT - 1, WHITE);
@@ -47,20 +54,43 @@ void display_dot(int16_t offset_x) {
     display.drawPixel(offset_x + 1, SSD1306_LCDHEIGHT - 2, WHITE);
 }
 
-void display_temperature(const Sensor sensor, float temp) {
+void post_temperature(int8_t sensor_id, float temp) {
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.printf("WiFi is not connected, skipping for sensor_id %d", sensor_id);
+        Serial.println();
+        return;
+    }
+
+    if (client.connected() == 0) {
+        client.connect(host, port);
+    }
+
+    client.printf("POST /sensor/%d/%.2f HTTP/1.1\r\n", sensor_id, temp);
+    client.printf("Host: %s:%d\r\n", host.c_str(), port);
+    client.printf("User-Agent: pio-temp-sensor/1.0\r\n");
+    client.printf("Accept: */*\r\n");
+    client.printf("\r\n");
+    client.flush();
+    String str = client.readString();
+
+    Serial.printf("sensor_id=%d temp=%.2f", sensor_id, temp);
+    Serial.println();
+    Serial.println(str);
+}
+
+void display_temperature(const Sensor &sensor, float temp) {
     display.setCursor(0, sensor.offset_y);
 
     if (temp != DEVICE_DISCONNECTED_C) {
-        Serial.print("Temperature for the ");
-        Serial.print(sensor.device_name);
-        Serial.print(" device is ");
-        Serial.println(temp);
-
+        Serial.printf("Temperature for the %s device is %.2f", sensor.device_name, temp);
+        Serial.println();
         display.print(temp);
+
+        // FIXME move to separate thread
+        post_temperature(sensor.sensor_id, temp);
     } else {
-        Serial.print("Could not read temperature data from the ");
-        Serial.print(sensor.device_name);
-        Serial.println(" device");
+        Serial.printf("Could not read temperature data from the %s device", sensor.device_name);
+        Serial.println();
 
         display.print(NO_TEMPERATURE_DATA);
     }

@@ -1,6 +1,8 @@
 
 ### Two temperature sensors with WiFi
 
+  Client for [temperature sensors](https://github.com/olegnet/iot-data-server) project
+
 #### Devices
 
   * [D1 mini board](https://aliexpress.com/item/32651747570.html)
@@ -22,6 +24,13 @@ pio lib install "stblassitude/Adafruit SSD1306 Wemos Mini OLED"
 ```c++
 #define WIFI_SSID "access point name"
 #define WIFI_PASS "access point password"
+```
+
+  host and port to upload data
+
+```c++
+#define SERVER_HOST "192.168.1.100" 
+#define SERVER_PORT 12345
 ```
 
 #### Dirty hack to make CLion happy
