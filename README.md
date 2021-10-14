@@ -13,10 +13,10 @@
 
 ```sh
 pio lib install "adafruit/Adafruit GFX Library"
-pio lib install "paulstoffregen/OneWire"
-pio lib install "milesburton/DallasTemperature"
 pio lib install "adafruit/Adafruit BusIO"
 pio lib install "stblassitude/Adafruit SSD1306 Wemos Mini OLED"
+pio lib install "paulstoffregen/OneWire"
+pio lib install "milesburton/DallasTemperature"
 ```
 
 #### wifi-credentials.h content
@@ -31,17 +31,6 @@ pio lib install "stblassitude/Adafruit SSD1306 Wemos Mini OLED"
 ```c++
 #define SERVER_HOST "192.168.1.100" 
 #define SERVER_PORT 12345
-```
-
-#### Dirty hack to make CLion happy
-
-Code navigation doesn't work in my CLion 2021.2.2 without it
-
-```c++
-#include "../.pio/libdeps/d1_mini/Adafruit GFX Library/Adafruit_GFX.h"
-#include "../.pio/libdeps/d1_mini/Adafruit SSD1306 Wemos Mini OLED/Adafruit_SSD1306.h"
-#include "../.pio/libdeps/d1_mini/OneWire/OneWire.h"
-#include "../.pio/libdeps/d1_mini/DallasTemperature/DallasTemperature.h"
 ```
 
 #### TODO
